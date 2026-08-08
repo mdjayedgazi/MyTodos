@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, Boolean, Sequence, ForeignKey
+from sqlalchemy import String, Integer, Boolean, Sequence, ForeignKey, Identity
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
@@ -7,7 +7,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(
-        Sequence("users_id_seq", start=101),
+        Identity(start=101),
         primary_key=True,
     )
 
@@ -26,7 +26,7 @@ class User(Base):
 class Todo(Base):
     __tablename__ = "todos"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(Identity(start=101), primary_key=True)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(String(300))
     priority: Mapped[int] = mapped_column(Integer, nullable=False)
