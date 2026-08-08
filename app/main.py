@@ -14,7 +14,6 @@ from router import auth, admin
 app = FastAPI()
 
 class Todos(BaseModel):
-    id: Annotated[int, Field(..., gt=100, description='Todos id', examples=[101])]
     title: Annotated[str, Field(..., max_length=50,min_length=5, description='Todos Title')]
     description: Annotated[str, Field(..., description='Todos Description', max_length=50,min_length=5)]
     priority: Annotated[int, Field(..., description='Todos Priority', gt=0, le=5, examples=[2])]
