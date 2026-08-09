@@ -62,11 +62,11 @@ class UserCreate(BaseModel):
 
 
 class UpdateUser(BaseModel):
-    fast_name: Optional[str] = Field(default=None)
-    last_name: Optional[str] = Field(default=None)
-    username: Optional[str] = Field(default=None)
-    email: Optional[str] = Field(default=None)
-    phone: Optional[str] = Field(default=None)
+    last_name: Optional[str] = None
+    fast_name: Optional[str] = None
+    username: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
 
 class PasswordUpdate(BaseModel):
     current_password: str = Field(...)
