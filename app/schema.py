@@ -18,17 +18,18 @@ class Role(str, Enum):
 class UserCreate(BaseModel):
     first_name: Annotated[
         str,
-        Field(description="First Name")
+        Field(...,description="First Name")
     ]
 
     last_name: Annotated[
         str,
-        Field(description="Last Name")
+        Field(...,description="Last Name")
     ]
 
     username: Annotated[
         str,
         Field(
+            ...,
             min_length=5,
             max_length=50,
             description="Username",
@@ -38,6 +39,7 @@ class UserCreate(BaseModel):
     email: Annotated[
         str,
         Field(
+            ...,
             description="Email Address",
             examples=["john@gmail.com"],
         )
@@ -46,6 +48,7 @@ class UserCreate(BaseModel):
     password: Annotated[
         str,
         Field(
+            ...,
             min_length=8,
             description="User Password",
         )
@@ -56,6 +59,7 @@ class UserCreate(BaseModel):
     phone: Annotated[
         str,
         Field(
+            ...,
             description='User phone Number'
         )
     ]
