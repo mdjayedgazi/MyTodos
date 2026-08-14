@@ -1,24 +1,25 @@
-from enum import Enum
 from typing import Annotated
 from datetime import timedelta, datetime, timezone
 
-from dns.asyncbackend import AsyncLibraryNotFoundError
 from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from pydantic import BaseModel, Field
+# DeepSeek v4: removed unused imports (BaseModel, Field - schemas live in app/schema.py)
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from jose import jwt
 
+from app.config import settings
 from app.dependencies import get_db
 from app.models import User
 from app.schema import UserCreate, UpdateUser, PasswordUpdate
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-SECRET_KEY = '86246bdacd0b6b86cd83d28990e55d90cb4e18f8190da345d47a14c9e19e98b2'
-ALGORITHM = 'HS256'
+# DeepSeek v4: SECRET_KEY/ALGORITHM moved to app/config.py (.env),
+# old hardcoded key was already pushed to GitHub and is rotated.
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
 
 
 
@@ -58,28 +59,29 @@ def create_access_token(
 
 
 def get_current_user(token: Annotated[str, Depends(OAuth2_bearer)]):
+    # DeepSeek v4: bare `except:` caught every error (even our own
+    # HTTPException) and returned 404. Now only jwt errors are caught
+    # and the status is 401 Unauthorized, as it should be.
     try:
         payload = jwt.decode(token=token, key=SECRET_KEY, algorithms=[ALGORITHM])
 
-        # pyrefly: ignore [bad-assignment]
         username: str = payload.get('sub')
-        # pyrefly: ignore [bad-assignment]
         user_id: int = payload.get('id')
         role: str = payload.get('role')
         if username is None or user_id is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_401_UNAUTHORIZED,
                 detail='User not found'
             )
 
         return {
-            'username':username,
+            'username': username,
             'id': user_id,
             'role': role,
         }
-    except:
+    except jwt.JWTError:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail='User not found'
         )
 
@@ -101,6 +103,16 @@ def create_user(
     """
     Create a new user.
     """
+
+    # DeepSeek v4: check for duplicate username/email before insert,
+    # otherwise the DB raises IntegrityError and the API returns 500.
+    if db.query(User).filter(
+        (User.username == new_user.username) | (User.email == new_user.email)
+    ).first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Username or email already registered'
+        )
 
     # Convert request data into SQLAlchemy model
     user = User(
@@ -130,7 +142,7 @@ def create_user(
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
         content={
-            'message' : 'User crated successfully'
+            'message': 'User created successfully'  # DeepSeek v4: fixed typo "crated" -> "created"
         }
     )
 
@@ -157,7 +169,7 @@ def login_user(
 
 
 @router.put('/edituser')
-def update_todos(user: user_dependency, db: Annotated[Session, Depends(get_db)], update_user: UpdateUser):
+def update_user(user: user_dependency, db: Annotated[Session, Depends(get_db)], update_user: UpdateUser):
 
     if user is None:
         raise HTTPException(
@@ -165,7 +177,15 @@ def update_todos(user: user_dependency, db: Annotated[Session, Depends(get_db)],
             detail='Failed Authentication'
         )
 
+    # DeepSeek v4: renamed update_todos -> update_user, and added a
+    # None check so setattr() can't crash with AttributeError (500).
     user = db.query(User).filter(User.id == user.get('id')).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='User not found'
+        )
 
     update_data = update_user.model_dump(exclude_unset=True)
 
@@ -193,7 +213,15 @@ def update_pass(
             detail='Failed Authentication'
         )
 
+    # DeepSeek v4: added None check - if the user row is missing,
+    # user.hashed_password would crash with AttributeError (500).
     user = db.query(User).filter(User.id == user.get('id')).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='User not found'
+        )
 
     if not bcrypt_context.verify(updatePassword.current_password, user.hashed_password):
         raise HTTPException(

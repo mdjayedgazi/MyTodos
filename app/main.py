@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.database import Base, engine
 from app.dependencies import get_db
 from app.models import Todo,User
+from app.schema import UserResponse
 from router import auth, admin
 
 app = FastAPI()
@@ -19,11 +20,13 @@ class Todos(BaseModel):
     priority: Annotated[int, Field(..., description='Todos Priority', gt=0, le=5, examples=[2])]
     completed: Annotated[bool, Field(default=False)]
 
+# DeepSeek v4: rebuilt Todos_update - the old Optional[Annotated[..., Field(default=None)]]
+# pattern caused a Pydantic v2 UnsupportedFieldAttributeWarning.
 class Todos_update(BaseModel):
-    title: Optional[Annotated[str, Field(default=None, max_length=50,min_length=5, description='Todos Title')]] = None
-    description: Optional[Annotated[str, Field(default=None, description='Todos Description', max_length=50,min_length=5)]] = None
-    priority: Optional[Annotated[int, Field(default=None, description='Todos Priority', gt=0, le=5, examples=[2])]] = None
-    completed: Optional[Annotated[bool, Field(default=None)]] = None
+    title: Optional[str] = Field(default=None, min_length=5, max_length=50)
+    description: Optional[str] = Field(default=None, min_length=5, max_length=50)
+    priority: Optional[int] = Field(default=None, gt=0, le=5)
+    completed: Optional[bool] = None
 
 Base.metadata.create_all(bind=engine)
 app.include_router(auth.router)
@@ -108,7 +111,7 @@ def update_todos(user: user_dependency, db: Annotated[Session, Depends(get_db)],
 
 
 
-@app.delete('/delet/{todo_id}')
+@app.delete('/delete/{todo_id}')
 def delete_todo(user:user_dependency, db: Annotated[Session, Depends(get_db)], todo_id: int):
 
     if user is None:
@@ -134,7 +137,9 @@ def delete_todo(user:user_dependency, db: Annotated[Session, Depends(get_db)], t
     )
 
 
-@app.get('/user')
+# DeepSeek v4: added response_model=UserResponse so hashed_password
+# is never returned to the client.
+@app.get('/user', response_model=UserResponse)
 def get_user(user: user_dependency, db: Annotated[Session, Depends(get_db)]):
 
     if user is None:

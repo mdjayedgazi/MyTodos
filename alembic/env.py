@@ -6,10 +6,17 @@ from sqlalchemy import pool
 from alembic import context
 
 from app import models
+from app.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# DeepSeek v4: read the database URL from app settings (.env) instead of
+# the hardcoded URL in alembic.ini (which also contained a password in git).
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace(
+    "postgresql://", "postgresql+psycopg://", 1
+))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

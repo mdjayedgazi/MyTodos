@@ -25,4 +25,5 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    pass
+    # DeepSeek v4: downgrade was a no-op (pass); implemented it properly
+    op.drop_column('users', 'phone')

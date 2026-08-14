@@ -4,7 +4,8 @@
 from enum import Enum
 from typing import Annotated, Optional
 
-from pydantic import BaseModel, Field
+# DeepSeek v4: added ConfigDict import for model_config
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class Role(str, Enum):
@@ -67,10 +68,27 @@ class UserCreate(BaseModel):
 
 class UpdateUser(BaseModel):
     last_name: Optional[str] = None
-    fast_name: Optional[str] = None
+    # DeepSeek v4: fixed typo fast_name -> first_name (fast_name never
+    # matched the User model field, so it was silently ignored)
+    first_name: Optional[str] = None
     username: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
+
+# DeepSeek v4: response schema for user profile - explicitly excludes
+# hashed_password so it can't leak through GET /user
+class UserResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    username: str
+    email: str
+    role: Role
+    is_active: bool
+    phone: Optional[str] = None
+
+    # DeepSeek v4: ConfigDict is the Pydantic v2 way (class Config is deprecated)
+    model_config = ConfigDict(from_attributes=True)
 
 class PasswordUpdate(BaseModel):
     current_password: str = Field(...)
