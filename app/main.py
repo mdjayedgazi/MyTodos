@@ -56,7 +56,7 @@ def read_specific_todos(user: user_dependency,db: Annotated[Session, Depends(get
     if specific_todos is not None:
         return specific_todos
     else:
-        raise HTTPException(status_code=404, detail='To do not found')
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='To do not found')
 
 @app.post('/create')
 def create_todos(user: user_dependency, db: Annotated[Session, Depends(get_db)], new_todos : Todos):
@@ -70,7 +70,7 @@ def create_todos(user: user_dependency, db: Annotated[Session, Depends(get_db)],
     db.add(todo_model)
     db.commit()
     return JSONResponse(
-        status_code=201,
+        status_code=status.HTTP_201_CREATED,
         content={
             'message' : 'To do create successfully'
         }
@@ -100,7 +100,7 @@ def update_todos(user: user_dependency, db: Annotated[Session, Depends(get_db)],
 
     db.commit()
     return JSONResponse(
-        status_code=200,
+        status_code=status.HTTP_200_OK,
         content={
             'message' : 'To do updated successfully'
         }
@@ -127,7 +127,7 @@ def delete_todo(user:user_dependency, db: Annotated[Session, Depends(get_db)], t
 
     db.commit()
     return JSONResponse(
-        status_code=200,
+        status_code=status.HTTP_200_OK,
         content={
             'message' : 'To do deleted successfully'
         }
