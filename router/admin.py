@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_db
-from app.models import User, Todo
+from app.models import Todo
 from router import auth
 
 router = APIRouter(prefix="/admin", tags=["Admin"])  # DeepSeek v4: tag was "Authentication"
@@ -47,7 +47,7 @@ def delete_todo(user: user_dependency, db: Annotated[Session, Depends(get_db)], 
 
     db.commit()
     return JSONResponse(
-        status_code=200,
+        status_code=status.HTTP_200_OK,
         content={
             'message': 'To do deleted successfully'
         }

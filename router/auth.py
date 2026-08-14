@@ -194,7 +194,7 @@ def update_user(user: user_dependency, db: Annotated[Session, Depends(get_db)], 
 
     db.commit()
     return JSONResponse(
-        status_code=200,
+        status_code=status.HTTP_200_OK,
         content={
             'message' : 'User updated successfully'
         }

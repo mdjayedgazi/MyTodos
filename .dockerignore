@@ -1,0 +1,28 @@
+# Git
+.git
+.gitignore
+
+# Environment / secrets (never ship the real .env into an image)
+.env
+.env.*
+
+# Local virtualenv — deps are built fresh inside the image
+.venv
+venv
+
+# Test & coverage artifacts
+.pytest_cache
+tests
+__pycache__
+*.pyc
+
+# Local data (Postgres volume, etc.)
+data
+
+# IDE / editor files
+.idea
+.vscode
+.junie
+
+# Misc build output
+*.log
